@@ -1,0 +1,232 @@
+
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Rectangle Animation</title>
+    <style>
+        /* Umumiy uslublar */
+        body {
+        margin: 0;
+        font-family: 'Arial', sans-serif;
+        background-color: #eaeaea;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        }
+
+        canvas {
+        border: 5px solid #8b8d8e;
+        background-color: #fff;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+        transition: box-shadow 0.3s ease-in-out;
+        width: 90vw; /* Ekran kengligining 90% */
+        height: auto; /* Yaxshi ratio saqlash uchun */
+        max-width: 800px; /* Katta ekranlar uchun maksimal kenglik */
+        aspect-ratio: 16/9; /* Doimiy ratio */
+        }
+
+        canvas:hover {
+        box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .controls {
+        margin-top: 20px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr); /* 3 ustunli grid */
+        grid-gap: 10px;
+        justify-items: center;
+        align-items: center;
+        padding: 10px;
+        border-radius: 8px;
+        background-color: #fff;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        width: 60vw; /* Kichik ekranda kenglikni to'liq egallaydi */
+        max-width: 800px; /* Katta ekranlar uchun */
+        }
+
+        .controls label {
+        color: #333;
+        font-weight: bold;
+        }
+
+        .controls input {
+        padding: 5px;
+        width: 60px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        outline: none;
+        }
+
+        .controls button {
+        grid-column: 1 / -1; /* Tugmani to'liq kenglikka chiqarmoq */
+        padding: 8px 12px;
+        background-color: #28a745;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s ease-in-out;
+        margin-top: 10px; /* Yaxshi ko'rinish uchun */
+        }
+
+        .controls button:hover {
+        background-color: #218838;
+        }
+
+        @media (max-width: 800px) {
+        .controls {
+            grid-template-columns: repeat(2, 1fr); /* Kichik ekranlarda 2 ustun */
+        }
+        }
+
+        @media (max-width: 500px) {
+        .controls {
+            grid-template-columns: 1fr; /* Juda kichik ekranlarda 1 ustun */
+        }
+        .controls input {
+            width: 100%; /* Input maydonlari to'liq kenglikda bo'ladi */
+        }
+        }
+    </style>
+    </head>
+    <body>
+    <canvas id="rectCanvas"></canvas>
+    <div class="controls">
+        <label for="widthInput">Width:</label>
+        <input type="number" id="widthInput" value="100" min="10" />
+        <label for="heightInput">Height:</label>
+        <input type="number" id="heightInput" value="100" min="10" />
+        <label for="speedInput">Speed:</label>
+        <input type="number" id="speedInput" value="3" min="1" />
+        <button id="applySettings">Apply Settings</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('rectCanvas');
+        const ctx = canvas.getContext('2d');
+        let x, y, dx = 3, dy = 3;
+        let rectWidth = 100, rectHeight = 100;
+        let isDragging = false;
+        let mouseInsideCanvas = false;
+        let lastMouseX, lastMouseY;
+
+        // Random rang olish uchun funksiya
+        function getRandomColor() {
+        const letters = '0123456789ABCDEF';
+        let color = '#';
+        for (let i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+        }
+
+        let color = getRandomColor();
+
+        // Canvas hajmini o‘zgartirish
+        function resizeCanvas() {
+        canvas.width = canvas.clientWidth;
+        canvas.height = canvas.clientHeight;
+        resetRectangle();
+        }
+
+        // Kvadratni qayta joylash
+        function resetRectangle() {
+        x = (canvas.width - rectWidth) / 2;
+        y = (canvas.height - rectHeight) / 2;
+        }
+
+        // Kvadratni chizish
+        function drawRect() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height); // Tozalash
+        ctx.fillStyle = color;
+        ctx.fillRect(x, y, rectWidth, rectHeight); // Kvadratni chizish
+        }
+
+        // Animatsiya funksiyasi
+        function animate() {
+        if (!isDragging && !mouseInsideCanvas) {
+            if (x + rectWidth > canvas.width || x < 0) {
+            dx = -dx;
+            color = getRandomColor();
+            }
+            if (y + rectHeight > canvas.height || y < 0) {
+            dy = -dy;
+            color = getRandomColor();
+            }
+            x += dx;
+            y += dy;
+        }
+        drawRect();
+        requestAnimationFrame(animate);
+        }
+
+        // Mouse hoverda kvadratni to‘xtatish
+        canvas.addEventListener('mouseenter', () => {
+        mouseInsideCanvas = true; // Harakatni to'xtatadi
+        });
+
+        // Mouse chiqganda kvadratni qayta harakatlantirish
+        canvas.addEventListener('mouseleave', () => {
+        mouseInsideCanvas = false; // Harakatni davom ettiradi
+        });
+
+        // Drag boshlanishi
+        canvas.addEventListener('mousedown', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+
+        if (mouseX >= x && mouseX <= x + rectWidth && mouseY >= y && mouseY <= y + rectHeight) {
+            isDragging = true;
+            dx = dy = 0; // Harakatni to'xtatadi
+            lastMouseX = mouseX;
+            lastMouseY = mouseY;
+        }
+        });
+
+        // Drag payti
+        canvas.addEventListener('mousemove', (e) => {
+        if (isDragging) {
+            const rect = canvas.getBoundingClientRect();
+            x = e.clientX - rect.left - rectWidth / 2;
+            y = e.clientY - rect.top - rectHeight / 2;
+            drawRect();
+        }
+        });
+
+        // Drag tugagach
+        canvas.addEventListener('mouseup', (e) => {
+        if (isDragging) {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            // Kvadrat tezligi sichqoncha harakatiga tenglashtirish
+            dx = (mouseX - lastMouseX) / 5; // Drag tugagach kvadrat sekinlashmaydi
+            dy = (mouseY - lastMouseY) / 5;
+
+            isDragging = false;
+        }
+        });
+
+        // Sozlamalarni qo‘llash
+        document.getElementById('applySettings').addEventListener('click', () => {
+        rectWidth = parseInt(document.getElementById('widthInput').value);
+        rectHeight = parseInt(document.getElementById('heightInput').value);
+        dx = dy = parseInt(document.getElementById('speedInput').value);
+        resetRectangle();
+        });
+
+        // Dastlabki sozlash
+        resizeCanvas();
+        animate();
+
+        // Oynaning o'lchami o'zgarganda canvasni qayta o‘rnatish
+        window.addEventListener('resize', resizeCanvas);
+    </script>
+    </body>
+    </html>
