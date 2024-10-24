@@ -1,99 +1,100 @@
+ 
 
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interactive Rectangle Animation</title>
     <style>
-        /* Umumiy uslublar */
+        /* General Styles */
         body {
-        margin: 0;
-        font-family: 'Arial', sans-serif;
-        background-color: #eaeaea;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            background-color: #eaeaea;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
 
         canvas {
-        border: 5px solid #8b8d8e;
-        background-color: #fff;
-        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-        transition: box-shadow 0.3s ease-in-out;
-        width: 90vw; /* Ekran kengligining 90% */
-        height: auto; /* Yaxshi ratio saqlash uchun */
-        max-width: 800px; /* Katta ekranlar uchun maksimal kenglik */
-        aspect-ratio: 16/9; /* Doimiy ratio */
+            border: 5px solid #8b8d8e;
+            background-color: #fff;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+            transition: box-shadow 0.3s ease-in-out;
+            width: 90vw; /* 90% of screen width */
+            height: auto; /* Maintain good ratio */
+            max-width: 800px; /* Max width for larger screens */
+            aspect-ratio: 16/9; /* Fixed ratio */
         }
 
         canvas:hover {
-        box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.3);
+            box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.3);
         }
 
         .controls {
-        margin-top: 20px;
-        display: grid;
-        grid-template-columns: repeat(3, 1fr); /* 3 ustunli grid */
-        grid-gap: 10px;
-        justify-items: center;
-        align-items: center;
-        padding: 10px;
-        border-radius: 8px;
-        background-color: #fff;
-        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-        width: 60vw; /* Kichik ekranda kenglikni to'liq egallaydi */
-        max-width: 800px; /* Katta ekranlar uchun */
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* 3-column grid */
+            grid-gap: 10px;
+            justify-items: center;
+            align-items: center;
+            padding: 10px;
+            border-radius: 8px;
+            background-color: #fff;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            width: 60vw; /* Full width on smaller screens */
+            max-width: 800px; /* Max for larger screens */
         }
 
         .controls label {
-        color: #333;
-        font-weight: bold;
+            color: #333;
+            font-weight: bold;
         }
 
         .controls input {
-        padding: 5px;
-        width: 60px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        outline: none;
+            padding: 5px; 
+            width: 60px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            outline: none;
         }
 
         .controls button {
-        grid-column: 1 / -1; /* Tugmani to'liq kenglikka chiqarmoq */
-        padding: 8px 12px;
-        background-color: #28a745;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background-color 0.3s ease-in-out;
-        margin-top: 10px; /* Yaxshi ko'rinish uchun */
+            grid-column: 1 / -1; /* Full width button */
+            padding: 8px 12px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease-in-out;
+            margin-top: 10px; /* Spacing */
         }
 
         .controls button:hover {
-        background-color: #218838;
+            background-color: #218838;
         }
 
         @media (max-width: 800px) {
-        .controls {
-            grid-template-columns: repeat(2, 1fr); /* Kichik ekranlarda 2 ustun */
-        }
+            .controls {
+                grid-template-columns: repeat(2, 1fr); /* 2 columns on smaller screens */
+            }
         }
 
         @media (max-width: 500px) {
-        .controls {
-            grid-template-columns: 1fr; /* Juda kichik ekranlarda 1 ustun */
-        }
-        .controls input {
-            width: 100%; /* Input maydonlari to'liq kenglikda bo'ladi */
-        }
+            .controls {
+                grid-template-columns: 1fr; /* 1 column on very small screens */
+            }
+            .controls input {
+                width: 100%; /* Full width inputs */
+            }
         }
     </style>
-    </head>
-    <body>
+</head>
+<body>
     <canvas id="rectCanvas"></canvas>
     <div class="controls">
         <label for="widthInput">Width:</label>
@@ -108,125 +109,176 @@
     <script>
         const canvas = document.getElementById('rectCanvas');
         const ctx = canvas.getContext('2d');
-        let x, y, dx = 3, dy = 3;
+        let x, y, dx, dy;
         let rectWidth = 100, rectHeight = 100;
         let isDragging = false;
-        let mouseInsideCanvas = false;
+        let mouseInsideCanvas = false; // Flag to track mouse over canvas
         let lastMouseX, lastMouseY;
 
-        // Random rang olish uchun funksiya
+        // Function to get random color
         function getRandomColor() {
-        const letters = '0123456789ABCDEF';
-        let color = '#';
-        for (let i = 0; i < 6; i++) {
-            color += letters[Math.floor(Math.random() * 16)];
-        }
-        return color;
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
         }
 
         let color = getRandomColor();
 
-        // Canvas hajmini o‘zgartirish
+        // Resize canvas function
         function resizeCanvas() {
-        canvas.width = canvas.clientWidth;
-        canvas.height = canvas.clientHeight;
-        resetRectangle();
+            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+            resetRectangle();
         }
 
-        // Kvadratni qayta joylash
+        // Reset rectangle position
         function resetRectangle() {
-        x = (canvas.width - rectWidth) / 2;
-        y = (canvas.height - rectHeight) / 2;
+            x = (canvas.width - rectWidth) / 2;
+            y = (canvas.height - rectHeight) / 2;
         }
 
-        // Kvadratni chizish
+        // Draw rectangle
         function drawRect() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height); // Tozalash
-        ctx.fillStyle = color;
-        ctx.fillRect(x, y, rectWidth, rectHeight); // Kvadratni chizish
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, rectWidth, rectHeight);
         }
 
-        // Animatsiya funksiyasi
+        // Animation function
         function animate() {
-        if (!isDragging && !mouseInsideCanvas) {
-            if (x + rectWidth > canvas.width || x < 0) {
-            dx = -dx;
-            color = getRandomColor();
+            if (!isDragging && !mouseInsideCanvas) { // Only move if not dragging and mouse is not over canvas
+                x += dx;
+                y += dy;
+
+                // Check boundaries and bounce
+                if (x + rectWidth > canvas.width || x < 0) {
+                    dx = -dx; // Reverse horizontal direction
+                    x = Math.max(0, Math.min(x, canvas.width - rectWidth)); // Ensure within bounds
+                    color = getRandomColor(); // Change color on bounce
+                }
+                if (y + rectHeight > canvas.height || y < 0) {
+                    dy = -dy; // Reverse vertical direction
+                    y = Math.max(0, Math.min(y, canvas.height - rectHeight)); // Ensure within bounds
+                    color = getRandomColor(); // Change color on bounce
+                }
             }
-            if (y + rectHeight > canvas.height || y < 0) {
-            dy = -dy;
-            color = getRandomColor();
-            }
-            x += dx;
-            y += dy;
-        }
-        drawRect();
-        requestAnimationFrame(animate);
-        }
-
-        // Mouse hoverda kvadratni to‘xtatish
-        canvas.addEventListener('mouseenter', () => {
-        mouseInsideCanvas = true; // Harakatni to'xtatadi
-        });
-
-        // Mouse chiqganda kvadratni qayta harakatlantirish
-        canvas.addEventListener('mouseleave', () => {
-        mouseInsideCanvas = false; // Harakatni davom ettiradi
-        });
-
-        // Drag boshlanishi
-        canvas.addEventListener('mousedown', (e) => {
-        const rect = canvas.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
-
-        if (mouseX >= x && mouseX <= x + rectWidth && mouseY >= y && mouseY <= y + rectHeight) {
-            isDragging = true;
-            dx = dy = 0; // Harakatni to'xtatadi
-            lastMouseX = mouseX;
-            lastMouseY = mouseY;
-        }
-        });
-
-        // Drag payti
-        canvas.addEventListener('mousemove', (e) => {
-        if (isDragging) {
-            const rect = canvas.getBoundingClientRect();
-            x = e.clientX - rect.left - rectWidth / 2;
-            y = e.clientY - rect.top - rectHeight / 2;
             drawRect();
+            requestAnimationFrame(animate);
         }
+
+        // Start with default speed
+        function initializeSpeed() {
+            const defaultSpeed = parseInt(document.getElementById('speedInput').value);
+            dx = defaultSpeed; // Start moving right
+            dy = defaultSpeed; // Start moving down
+        }
+
+        // Mouse hover events
+        canvas.addEventListener('mouseenter', () => {
+            mouseInsideCanvas = true; // Pause movement on hover
         });
 
-        // Drag tugagach
-        canvas.addEventListener('mouseup', (e) => {
-        if (isDragging) {
+        canvas.addEventListener('mouseleave', () => {
+            mouseInsideCanvas = false; // Resume movement on leave
+        });
+
+        // Start dragging
+        canvas.addEventListener('mousedown', (e) => {
             const rect = canvas.getBoundingClientRect();
             const mouseX = e.clientX - rect.left;
             const mouseY = e.clientY - rect.top;
 
-            // Kvadrat tezligi sichqoncha harakatiga tenglashtirish
-            dx = (mouseX - lastMouseX) / 5; // Drag tugagach kvadrat sekinlashmaydi
-            dy = (mouseY - lastMouseY) / 5;
-
-            isDragging = false;
-        }
+            if (mouseX >= x && mouseX <= x + rectWidth && mouseY >= y && mouseY <= y + rectHeight) {
+                isDragging = true;
+                dx = dy = 0; // Stop movement while dragging
+                lastMouseX = mouseX; // Store last mouse position
+                lastMouseY = mouseY; // Store last mouse position
+            }
         });
 
-        // Sozlamalarni qo‘llash
+        // Dragging function
+        canvas.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const rect = canvas.getBoundingClientRect();
+                x = e.clientX - rect.left - rectWidth / 2;
+                y = e.clientY - rect.top - rectHeight / 2;
+                drawRect();
+            }
+        });
+
+        // End dragging
+        canvas.addEventListener('mouseup', (e) => {
+            if (isDragging) {
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+
+                // Calculate the speed based on drag distance
+                dx = (mouseX - lastMouseX) / 5; // Set speed based on release position
+                dy = (mouseY - lastMouseY) / 5;
+
+                isDragging = false; // Stop dragging
+            }
+        });
+
+        // Handle touch events for mobile devices
+        canvas.addEventListener('touchstart', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const touchX = e.touches[0].clientX - rect.left;
+            const touchY = e.touches[0].clientY - rect.top;
+
+            if (touchX >= x && touchX <= x + rectWidth && touchY >= y && touchY <= y + rectHeight) {
+                isDragging = true;
+                dx = dy = 0; // Stop movement while dragging
+                lastMouseX = touchX; // Store last touch position
+                lastMouseY = touchY; // Store last touch position
+                e.preventDefault(); // Prevent scrolling
+            }
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (isDragging) {
+                const rect = canvas.getBoundingClientRect();
+                x = e.touches[0].clientX - rect.left - rectWidth / 2;
+                y = e.touches[0].clientY - rect.top - rectHeight / 2;
+                drawRect();
+            }
+        });
+
+        canvas.addEventListener('touchend', (e) => {
+            if (isDragging) {
+                const rect = canvas.getBoundingClientRect();
+                const touchX = e.changedTouches[0].clientX - rect.left;
+                const touchY = e.changedTouches[0].clientY - rect.top;
+
+                // Calculate speed based on drag distance
+                dx = (touchX - lastMouseX) / 5; // Set speed based on release position
+                dy = (touchY - lastMouseY) / 5;
+
+                isDragging = false; // Stop dragging
+            }
+        });
+
+        // Apply settings
         document.getElementById('applySettings').addEventListener('click', () => {
-        rectWidth = parseInt(document.getElementById('widthInput').value);
-        rectHeight = parseInt(document.getElementById('heightInput').value);
-        dx = dy = parseInt(document.getElementById('speedInput').value);
-        resetRectangle();
+            rectWidth = parseInt(document.getElementById('widthInput').value);
+            rectHeight = parseInt(document.getElementById('heightInput').value);
+            initializeSpeed(); // Initialize speed based on input
+            resetRectangle();
         });
 
-        // Dastlabki sozlash
+        // Initial setup
         resizeCanvas();
+        initializeSpeed(); // Set initial speed
         animate();
 
-        // Oynaning o'lchami o'zgarganda canvasni qayta o‘rnatish
+        // Resize event
         window.addEventListener('resize', resizeCanvas);
     </script>
-    </body>
-    </html>
+</body>
+</html> 
+
+
